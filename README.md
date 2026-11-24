@@ -17,6 +17,18 @@ cookie/report/privacy footer, no external Linktree assets.
 | `assets/icons.json` | Path SVG ikon brand (TikTok, WhatsApp, IG, FB, YT) |
 | `deploy.sh` | Copy situs ke `/var/www/ray-link` + reload nginx |
 
+## Dashboard (tanpa edit file)
+
+Buka **https://natsutamura.my.id/admin/** — login pakai GitHub *fine-grained token*
+(Repository access: only `natsutamura/natsu-linktree`; Permissions: **Contents: Read and write**).
+Di sana bisa ubah nama/bio/followers, teks About + tombol CTA, kartu unggulan,
+daftar sosial, dan daftar link (tambah, hapus, urutkan, pilih ikon).
+
+Alur simpan: dashboard commit `links.json` → GitHub Action
+(`.github/workflows/build.yml`) menjalankan `build.py` → commit `index.html` baru →
+GitHub Pages deploy. Total ±1 menit. Token hanya tersimpan di browser (localStorage)
+dan hanya dikirim ke `api.github.com`.
+
 ## Edit konten
 
 Pilihan paling gampang: edit langsung `index.html` (semua konten ada di bagian
