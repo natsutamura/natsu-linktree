@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Generate index.html — clone of the natsutamura link page, without any Linktree branding."""
 import json, re, pathlib
+import html as htmllib
 
 BASE = pathlib.Path(__file__).parent
 A = BASE / "assets"
@@ -19,47 +20,97 @@ def svg_from_brand(key, cls=""):
 
 KEBAB = svg_from_brand("menu_ig").replace('viewBox="0 0 24 24"', 'viewBox="0 0 3 11"')
 
-SOCIALS = [
-    ("TikTok", "tiktok", "https://tiktok.com/@raybacabuku"),
-    ("WhatsApp", "whatsapp", "https://api.whatsapp.com/send?phone=6285157677224"),
-    ("Instagram", "instagram", "https://instagram.com/natsutamura"),
-    ("Facebook", "facebook", "https://www.facebook.com/rayyplayid"),
-    ("YouTube", "youtube", "https://www.youtube.com/channel/UCc9N1sfGO6BuGeyFGbUchfQ"),
-]
+DATA = json.loads((BASE / "links.json").read_text(encoding="utf-8"))
+PROFILE = DATA.get("profile", {})
+ABOUT = DATA.get("about", {})
+FEATURED = DATA.get("featured") or {}
 
-ABOUT_TEXT = (
-    "I am a graphic designer, graduated in a High School majoring in Visual Communication Design (DKV), "
-    "who uses Adobe Illustrator and Photoshop. I have strong skills in image editing, typography, and layout. "
-    "I am also accustomed to working on various types of projects, ranging from Logo &amp; Branding, Social Media, and UI/UX.\n"
-    "I always strive to produce high-quality work that meets the needs of both clients and companies."
-)
 
-ROWS = [
-    ("Order Form", "shopping-cart", "https://tally.so/r/w5x0PN", ""),
-    ("Last.fm", "brand-lastfm", "https://www.last.fm/user/natsutamura", ""),
-    ("Discord server", "brand-discord", "https://discord.gg/KY6Dqsw", '<span class="sub__ico">' + tabler("brand-discord") + "</span>Discord Server · Free to join"),
-    ("Email", "mail", "mailto:raymut8@gmail.com", '<span class="sub__ico">' + tabler("mail") + "</span>Email · raymut8@gmail.com"),
-    ("Github", "brand-github", "https://github.com/natsutamura", ""),
-]
+def esc(text):
+    """HTML-escape nilai dari links.json."""
+    return htmllib.escape(str(text or ""), quote=True)
+
+
+def icon(name):
+    """SVG untuk ikon brand (tiktok, instagram, ...) atau Tabler (mail, brand-github, ...)."""
+    if not name:
+        return ""
+    if name in brand:
+        return svg_from_brand(name)
+    try:
+        return tabler(name)
+    except FileNotFoundError:
+        try:
+            return tabler("link")
+        except FileNotFoundError:
+            return ""
+
 
 socials_html = "\n".join(
-    f'        <a class="social" href="{url}" target="_blank" rel="noopener noreferrer" aria-label="{name}">{svg_from_brand(key)}</a>'
-    for name, key, url in SOCIALS
+    '        <a class="social" href="' + esc(s.get("url")) + '" target="_blank" rel="noopener noreferrer"'
+    ' aria-label="' + esc(s.get("name")) + '">' + icon(s.get("icon")) + "</a>"
+    for s in DATA.get("socials", [])
 )
 
-rows_html = ""
-for title, icon, url, sub in ROWS:
-    sub_html = (
-        f'\n          <span class="row__sub">{sub}</span>' if sub else ""
-    )
-    rows_html += f"""
-        <div class="card row-card">
-          <a class="row" href="{url}" target="_blank" rel="noopener noreferrer" aria-label="{title}">
-            <span class="row__ico" aria-hidden="true">{tabler(icon)}</span>
-            <span class="row__label">{title}</span>{sub_html}
-          </a>
-          <button class="kebab" type="button" aria-label="Opsi untuk {title}" data-share="{url}" data-title="{title}">{KEBAB}</button>
-        </div>"""
+
+def row_html(link):
+    title = esc(link.get("title"))
+    url = esc(link.get("url"))
+    parts = [
+        "",
+        '        <div class="card row-card">',
+        '          <a class="row" href="' + url + '" target="_blank" rel="noopener noreferrer" aria-label="' + title + '">',
+        '            <span class="row__ico" aria-hidden="true">' + icon(link.get("icon")) + "</span>",
+        '            <span class="row__label">' + title + "</span>",
+    ]
+    sub = link.get("subtitle") or ""
+    if sub:
+        sub_icon = icon(link.get("subtitleIcon") or "")
+        ico = '<span class="sub__ico">' + sub_icon + "</span>" if sub_icon else ""
+        parts.append('          <span class="row__sub">' + ico + esc(sub) + "</span>")
+    parts += [
+        "          </a>",
+        '          <button class="kebab" type="button" aria-label="Opsi untuk ' + title + '" data-share="' + url +
+        '" data-title="' + title + '">' + KEBAB + "</button>",
+        "        </div>",
+    ]
+    return "\n".join(parts)
+
+
+rows_html = "".join(row_html(link) for link in DATA.get("links", []))
+
+ABOUT_TITLE = esc(ABOUT.get("title") or "About Me")
+ABOUT_TEXT = esc(ABOUT.get("text"))
+ABOUT_CTA = ABOUT.get("cta") or {}
+ABOUT_CTA_LABEL = esc(ABOUT_CTA.get("label") or "Start project with me!")
+ABOUT_CTA_URL = esc(ABOUT_CTA.get("url") or "#")
+
+SEO_TITLE = esc((PROFILE.get("seo") or {}).get("title") or (str(PROFILE.get("name", "")) + " — " + str(PROFILE.get("bio", ""))))
+SEO_DESC = esc((PROFILE.get("seo") or {}).get("description") or PROFILE.get("bio"))
+NAME = esc(PROFILE.get("name"))
+BIO = esc(PROFILE.get("bio"))
+AVATAR = esc(PROFILE.get("avatar") or "assets/avatar.jpg")
+FOLLOWERS = PROFILE.get("followers") or ""
+FOLLOWERS_HTML = '    <p class="followers">' + esc(FOLLOWERS) + "</p>\n" if FOLLOWERS else ""
+
+FEAT_HTML = ""
+if FEATURED:
+    f_label = esc(FEATURED.get("label"))
+    f_url = esc(FEATURED.get("url") or "#")
+    f_pill = FEATURED.get("pill") or {}
+    FEAT_HTML = "".join([
+        '    <section class="card media">\n',
+        '      <a class="media__frame" href="' + f_url + '" target="_blank" rel="noopener noreferrer" aria-label="' + f_label + '">\n',
+        '        <img src="' + esc(FEATURED.get("image")) + '" alt="' + esc(FEATURED.get("alt") or "Postingan terbaru") + '" loading="lazy">\n',
+        "      </a>\n",
+        '      <div class="media__chin">\n',
+        '        <a class="media__label" href="' + f_url + '" target="_blank" rel="noopener noreferrer">' + f_label + "</a>\n",
+        '        <p class="media__sub">' + icon(FEATURED.get("subtitleIcon")) + "<span>" + esc(FEATURED.get("subtitle")) + "</span></p>\n",
+        '        <a class="pill" href="' + esc(f_pill.get("url") or f_url) + '" target="_blank" rel="noopener noreferrer">' + esc(f_pill.get("label") or "Follow") + "</a>\n",
+        "      </div>\n",
+        '      <button class="kebab" type="button" aria-label="Opsi untuk ' + f_label + '" data-share="' + f_url + '" data-title="' + f_label + '">' + KEBAB + "</button>\n",
+        "    </section>\n",
+    ])
 
 HTML = f"""<!DOCTYPE html>
 <html lang="en">
@@ -67,12 +118,12 @@ HTML = f"""<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0A0A0A">
-<title>Ray — an ordinary content creator</title>
-<meta name="description" content="Ray — an ordinary content creator. Graphic designer: logo &amp; branding, social media, UI/UX.">
+<title>{SEO_TITLE}</title>
+<meta name="description" content="{SEO_DESC}">
 <meta property="og:type" content="profile">
-<meta property="og:title" content="Ray — an ordinary content creator">
-<meta property="og:description" content="Graphic designer: logo &amp; branding, social media, UI/UX.">
-<meta property="og:image" content="assets/avatar.jpg">
+<meta property="og:title" content="{SEO_TITLE}">
+<meta property="og:description" content="{SEO_DESC}">
+<meta property="og:image" content="{AVATAR}">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230A0A0A'/%3E%3Ctext x='32' y='44' font-family='Inter,Arial' font-size='34' font-weight='600' fill='%23fff' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
 <style>
 @font-face {{
@@ -477,43 +528,31 @@ button {{ font: inherit; color: inherit; }}
   </div>
 
   <header class="head">
-    <img class="avatar" src="assets/avatar.jpg" alt="Ray" width="96" height="96">
-    <h1 class="name">Ray</h1>
-    <p class="bio">an ordinary content creator</p>
+    <img class="avatar" src="{AVATAR}" alt="{NAME}" width="96" height="96">
+    <h1 class="name">{NAME}</h1>
+    <p class="bio">{BIO}</p>
     <nav class="socials" aria-label="Media sosial">
 {socials_html}
     </nav>
-    <p class="followers">2K followers</p>
-  </header>
+{FOLLOWERS_HTML}  </header>
 
   <main class="cards">
 
     <section class="card about" id="about">
       <div class="about__head">
-        <h2 class="about__title">About Me</h2>
+        <h2 class="about__title">{ABOUT_TITLE}</h2>
         <button class="kebab" type="button" aria-label="Opsi untuk About Me" data-share="#about" data-title="About Me">{KEBAB}</button>
       </div>
       <p class="about__text">{ABOUT_TEXT}</p>
       <button class="about__more" type="button" id="about-toggle" aria-expanded="false" aria-controls="about">More</button>
-      <a class="about__cta" href="https://tally.so/r/w5x0PN" target="_blank" rel="noopener noreferrer">Start project with me!</a>
+      <a class="about__cta" href="{ABOUT_CTA_URL}" target="_blank" rel="noopener noreferrer">{ABOUT_CTA_LABEL}</a>
     </section>
 
-    <section class="card media">
-      <a class="media__frame" href="https://instagram.com/natsutamura" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-        <img src="assets/ig-post.jpg" alt="Postingan Instagram terbaru" loading="lazy">
-      </a>
-      <div class="media__chin">
-        <a class="media__label" href="https://instagram.com/natsutamura" target="_blank" rel="noopener noreferrer">Instagram</a>
-        <p class="media__sub">{svg_from_brand("instagram")}<span>@natsutamura · 860 followers</span></p>
-        <a class="pill" href="https://instagram.com/natsutamura" target="_blank" rel="noopener noreferrer">Follow on Instagram</a>
-      </div>
-      <button class="kebab" type="button" aria-label="Opsi untuk Instagram" data-share="https://instagram.com/natsutamura" data-title="Instagram">{KEBAB}</button>
-    </section>
-{rows_html}
+{FEAT_HTML}{rows_html}
 
   </main>
 
-  <footer class="foot">© <span id="year">2026</span> Ray</footer>
+  <footer class="foot">© <span id="year">2026</span> {NAME}</footer>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

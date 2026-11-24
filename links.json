@@ -1,0 +1,76 @@
+{
+  "profile": {
+    "name": "Ray",
+    "bio": "an ordinary content creator",
+    "avatar": "assets/avatar.jpg",
+    "followers": "2K followers",
+    "seo": {
+      "title": "Ray — an ordinary content creator",
+      "description": "Ray — an ordinary content creator. Graphic designer: logo & branding, social media, UI/UX."
+    }
+  },
+  "socials": [
+    { "name": "TikTok", "icon": "tiktok", "url": "https://tiktok.com/@raybacabuku" },
+    { "name": "WhatsApp", "icon": "whatsapp", "url": "https://api.whatsapp.com/send?phone=6285157677224" },
+    { "name": "Instagram", "icon": "instagram", "url": "https://instagram.com/natsutamura" },
+    { "name": "Facebook", "icon": "facebook", "url": "https://www.facebook.com/rayyplayid" },
+    { "name": "YouTube", "icon": "youtube", "url": "https://www.youtube.com/channel/UCc9N1sfGO6BuGeyFGbUchfQ" }
+  ],
+  "about": {
+    "title": "About Me",
+    "text": "I am a graphic designer, graduated in a High School majoring in Visual Communication Design (DKV), who uses Adobe Illustrator and Photoshop. I have strong skills in image editing, typography, and layout. I am also accustomed to working on various types of projects, ranging from Logo & Branding, Social Media, and UI/UX.\nI always strive to produce high-quality work that meets the needs of both clients and companies.",
+    "cta": {
+      "label": "Start project with me!",
+      "url": "https://tally.so/r/w5x0PN"
+    }
+  },
+  "featured": {
+    "label": "Instagram",
+    "url": "https://instagram.com/natsutamura",
+    "image": "assets/ig-post.jpg",
+    "alt": "Postingan Instagram terbaru",
+    "subtitle": "@natsutamura · 860 followers",
+    "subtitleIcon": "instagram",
+    "pill": {
+      "label": "Follow on Instagram",
+      "url": "https://instagram.com/natsutamura"
+    }
+  },
+  "links": [
+    {
+      "title": "Order Form",
+      "url": "https://tally.so/r/w5x0PN",
+      "icon": "shopping-cart",
+      "subtitle": "",
+      "subtitleIcon": ""
+    },
+    {
+      "title": "Last.fm",
+      "url": "https://www.last.fm/user/natsutamura",
+      "icon": "brand-lastfm",
+      "subtitle": "",
+      "subtitleIcon": ""
+    },
+    {
+      "title": "Discord server",
+      "url": "https://discord.gg/KY6Dqsw",
+      "icon": "brand-discord",
+      "subtitle": "Discord Server · Free to join",
+      "subtitleIcon": "brand-discord"
+    },
+    {
+      "title": "Email",
+      "url": "mailto:raymut8@gmail.com",
+      "icon": "mail",
+      "subtitle": "Email · raymut8@gmail.com",
+      "subtitleIcon": "mail"
+    },
+    {
+      "title": "Github",
+      "url": "https://github.com/natsutamura",
+      "icon": "brand-github",
+      "subtitle": "",
+      "subtitleIcon": ""
+    }
+  ]
+}
